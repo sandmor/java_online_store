@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Product Management - Admin</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container-fluid mt-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-box me-2"></i>Product Management</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin}" class="text-decoration-none">Admin</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Products</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <a th:href="@{/admin/products/new}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add New Product
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <form th:action="@{/admin/products}" method="get" class="d-flex">
+                                <!-- Preserve other parameters -->
+                                <input type="hidden" name="search" th:value="${param.search}">
+                                <input type="hidden" name="status" th:value="${param.status}">
+                                <input type="hidden" name="sortBy" th:value="${param.sortBy}">
+                                <input type="hidden" name="sortDir" th:value="${param.sortDir}">
+                                
+                                <select name="category" class="form-select me-2">
+                                    <option value="">All Categories</option>
+                                    <option th:each="cat : ${categories}" 
+                                            th:value="${cat.id}" 
+                                            th:text="${cat.name}"
+                                            th:selected="${param.category == cat.id}">Category</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary">Filter</button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form th:action="@{/admin/products}" method="get" class="d-flex">
+                                <!-- Preserve other parameters -->
+                                <input type="hidden" name="category" th:value="${param.category}">
+                                <input type="hidden" name="status" th:value="${param.status}">
+                                <input type="hidden" name="sortBy" th:value="${param.sortBy}">
+                                <input type="hidden" name="sortDir" th:value="${param.sortDir}">
+                                
+                                <input type="text" name="search" class="form-control me-2" 
+                                       placeholder="Search products..." th:value="${param.search}">
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Filters Row -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <form th:action="@{/admin/products}" method="get" class="d-flex">
+                                <!-- Preserve other parameters -->
+                                <input type="hidden" name="search" th:value="${param.search}">
+                                <input type="hidden" name="category" th:value="${param.category}">
+                                <input type="hidden" name="sortBy" th:value="${param.sortBy}">
+                                <input type="hidden" name="sortDir" th:value="${param.sortDir}">
+                                
+                                <select name="status" class="form-select me-2">
+                                    <option value="">All Status</option>
+                                    <option value="active" th:selected="${param.status == 'active'}">Active</option>
+                                    <option value="inactive" th:selected="${param.status == 'inactive'}">Inactive</option>
+                                    <option value="in-stock" th:selected="${param.status == 'in-stock'}">In Stock</option>
+                                    <option value="low-stock" th:selected="${param.status == 'low-stock'}">Low Stock</option>
+                                    <option value="out-of-stock" th:selected="${param.status == 'out-of-stock'}">Out of Stock</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary">Filter</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form th:action="@{/admin/products}" method="get" class="d-flex">
+                                <!-- Preserve other parameters -->
+                                <input type="hidden" name="search" th:value="${param.search}">
+                                <input type="hidden" name="category" th:value="${param.category}">
+                                <input type="hidden" name="status" th:value="${param.status}">
+                                
+                                <select name="sortBy" class="form-select me-2">
+                                    <option value="">Sort By</option>
+                                    <option value="name" th:selected="${param.sortBy == 'name'}">Name</option>
+                                    <option value="price" th:selected="${param.sortBy == 'price'}">Price</option>
+                                    <option value="stock" th:selected="${param.sortBy == 'stock'}">Stock</option>
+                                    <option value="category" th:selected="${param.sortBy == 'category'}">Category</option>
+                                </select>
+                                <select name="sortDir" class="form-select me-2">
+                                    <option value="asc" th:selected="${param.sortDir == 'asc' or param.sortDir == null}">Ascending</option>
+                                    <option value="desc" th:selected="${param.sortDir == 'desc'}">Descending</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary">Sort</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <div class="row mt-2" th:if="${param.search != null or param.category != null or param.status != null or param.sortBy != null}">
+                        <div class="col-12">
+                            <a th:href="@{/admin/products}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-times me-1"></i>Clear All Filters
+                            </a>
+                            <span class="text-muted ms-2">
+                                Showing <strong th:text="${products.size()}">0</strong> of 
+                                <strong th:text="${totalProductsCount}">0</strong> products
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-box fa-2x mb-2"></i>
+                            <h5 th:text="${totalProductsCount}">0</h5>
+                            <small>Total Products</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <h5 th:text="${inStockCount}">0</h5>
+                            <small>In Stock</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <h5 th:text="${lowStockCount}">0</h5>
+                            <small>Low Stock</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-times-circle fa-2x mb-2"></i>
+                            <h5 th:text="${outOfStockCount}">0</h5>
+                            <small>Out of Stock</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Products</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" onclick="exportProducts()">
+                            <i class="fas fa-download me-1"></i>Export
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="bulkActions()">
+                            <i class="fas fa-edit me-1"></i>Bulk Actions
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${products.empty}" class="text-center py-5">
+                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No products found</h5>
+                        <p class="text-muted">
+                            <span th:if="${param.search != null or param.category != null or param.status != null}">
+                                Try adjusting your search criteria or
+                            </span>
+                            Add some products to get started!
+                        </p>
+                        <a th:href="@{/admin/products/new}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add New Product
+                        </a>
+                    </div>
+
+                    <div th:unless="${products.empty}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="product : ${products}">
+                                    <td>
+                                        <input type="checkbox" class="product-checkbox" th:value="${product.id}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:if="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                                                 th:src="${product.imageUrl}" 
+                                                 th:alt="${product.name}"
+                                                 class="img-thumbnail me-3" 
+                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                            <div th:unless="${product.imageUrl != null and !product.imageUrl.isEmpty()}" 
+                                                 class="bg-light border rounded me-3 d-flex align-items-center justify-content-center"
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1" th:text="${product.name}">Product Name</h6>
+                                                <small class="text-muted">ID: <span th:text="${product.id}">1</span></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${product.category != null ? product.category.name : 'No Category'}">Category</span>
+                                    </td>
+                                    <td>
+                                        <strong>$<span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span></strong>
+                                    </td>
+                                    <td>
+                                        <span th:classappend="${product.stockQuantity == 0} ? 'text-danger fw-bold' : (${product.stockQuantity <= 5} ? 'text-warning fw-bold' : 'text-success fw-bold')">
+                                            <span th:text="${product.stockQuantity}">0</span>
+                                        </span>
+                                        <span th:if="${product.stockQuantity == 0}" class="badge bg-danger ms-1">Out</span>
+                                        <span th:if="${product.stockQuantity > 0 and product.stockQuantity <= 5}" class="badge bg-warning text-dark ms-1">Low</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${product.active}" class="badge bg-success">Active</span>
+                                        <span th:unless="${product.active}" class="badge bg-secondary">Inactive</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/products/{id}(id=${product.id})}" 
+                                               class="btn btn-outline-info" title="View" target="_blank">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            <a th:href="@{/admin/products/edit(id=${product.id})}" 
+                                               class="btn btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger" 
+                                                    title="Delete"
+                                                    th:data-product-id="${product.id}"
+                                                    th:data-product-name="${product.name}"
+                                                    onclick="deleteProduct(this.dataset.productId, this.dataset.productName)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Product Modal -->
+        <div class="modal fade" id="deleteProductModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Product</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete product <strong id="deleteProductName"></strong>?</p>
+                        <p class="text-danger">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteProductForm" method="post">
+                            <button type="submit" class="btn btn-danger">Delete Product</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Modal -->
+        <div class="modal fade" id="bulkActionsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Bulk Actions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select an action to perform on selected products:</p>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-warning" onclick="bulkUpdateStock()">
+                                <i class="fas fa-edit me-2"></i>Update Stock
+                            </button>
+                            <button class="btn btn-outline-info" onclick="bulkUpdateCategory()">
+                                <i class="fas fa-tag me-2"></i>Change Category
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="bulkDelete()">
+                                <i class="fas fa-trash me-2"></i>Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function deleteProduct(productId, productName) {
+                document.getElementById('deleteProductName').textContent = productName;
+                document.getElementById('deleteProductForm').action = `/admin/products/delete?id=${productId}`;
+                const modal = new bootstrap.Modal(document.getElementById('deleteProductModal'));
+                modal.show();
+            }
+
+            function toggleSelectAll() {
+                const selectAll = document.getElementById('selectAll');
+                const checkboxes = document.querySelectorAll('.product-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+            }
+
+            function bulkActions() {
+                const selected = document.querySelectorAll('.product-checkbox:checked');
+                if (selected.length === 0) {
+                    alert('Please select at least one product.');
+                    return;
+                }
+                const modal = new bootstrap.Modal(document.getElementById('bulkActionsModal'));
+                modal.show();
+            }
+
+            function exportProducts() {
+                window.location.href = '/admin/products/export';
+            }
+
+            function bulkUpdateStock() {
+                const selected = getSelectedProducts();
+                if (selected.length === 0) return;
+                
+                const newStock = prompt('Enter new stock quantity:');
+                if (newStock !== null && !isNaN(newStock) && parseInt(newStock) >= 0) {
+                    // Create and submit form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/products/bulk-update-stock';
+                    
+                    // Add product IDs
+                    selected.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'productIds';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+                    
+                    // Add new stock value
+                    const stockInput = document.createElement('input');
+                    stockInput.type = 'hidden';
+                    stockInput.name = 'newStock';
+                    stockInput.value = newStock;
+                    form.appendChild(stockInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                } else if (newStock !== null) {
+                    alert('Please enter a valid stock quantity (0 or greater).');
+                }
+            }
+
+            function bulkUpdateCategory() {
+                const selected = getSelectedProducts();
+                if (selected.length === 0) return;
+                
+                // Show category selection modal
+                showBulkCategoryModal(selected);
+            }
+
+            function bulkDelete() {
+                const selected = getSelectedProducts();
+                if (selected.length === 0) return;
+                
+                if (confirm(`Delete ${selected.length} products? This cannot be undone.`)) {
+                    // Create and submit form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/products/bulk-delete';
+                    
+                    // Add product IDs
+                    selected.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'productIds';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+
+            function showBulkCategoryModal(selectedProductIds) {
+                // Create a simple category selection modal
+                const categoryOptions = /*[[${categories}]]*/ [];
+                let optionsHtml = '<option value="">Select a category...</option>';
+                
+                // Since we can't easily access Thymeleaf data in JS, we'll use a simpler approach
+                // Get categories from the filter dropdown
+                const categorySelect = document.querySelector('select[name="category"]');
+                if (categorySelect) {
+                    for (let i = 1; i < categorySelect.options.length; i++) {
+                        const option = categorySelect.options[i];
+                        optionsHtml += `<option value="${option.value}">${option.text}</option>`;
+                    }
+                }
+                
+                const modalHtml = `
+                    <div class="modal fade" id="bulkCategoryModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Category</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Select a new category for ${selectedProductIds.length} products:</p>
+                                    <select class="form-select" id="bulkCategorySelect">
+                                        ${optionsHtml}
+                                    </select>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" onclick="submitBulkCategoryUpdate()">Update Category</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Remove existing modal if any
+                const existingModal = document.getElementById('bulkCategoryModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+                
+                // Add new modal to body
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                // Store selected product IDs globally for form submission
+                window.selectedProductIds = selectedProductIds;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('bulkCategoryModal'));
+                modal.show();
+            }
+
+            function submitBulkCategoryUpdate() {
+                const categorySelect = document.getElementById('bulkCategorySelect');
+                const categoryId = categorySelect.value;
+                
+                if (!categoryId) {
+                    alert('Please select a category.');
+                    return;
+                }
+                
+                // Create and submit form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/products/bulk-update-category';
+                
+                // Add product IDs
+                window.selectedProductIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'productIds';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+                
+                // Add category ID
+                const categoryInput = document.createElement('input');
+                categoryInput.type = 'hidden';
+                categoryInput.name = 'categoryId';
+                categoryInput.value = categoryId;
+                form.appendChild(categoryInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            function getSelectedProducts() {
+                const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+                return Array.from(checkboxes).map(cb => cb.value);
+            }
+        </script>
+    </div>
+</body>
+</html>

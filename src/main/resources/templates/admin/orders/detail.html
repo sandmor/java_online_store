@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="'Order #' + ${order.id} + ' - Admin'">Order Detail - Admin</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container-fluid mt-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-receipt me-2"></i>Order #<span th:text="${order.id}">123</span></h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin}" class="text-decoration-none">Admin</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin/orders}" class="text-decoration-none">Orders</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" th:text="'Order #' + ${order.id}">Order Detail</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Order Actions -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span th:switch="${order.status.name()}" class="badge fs-6">
+                                <span th:case="'PENDING'" class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Pending
+                                </span>
+                                <span th:case="'PROCESSED'" class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Processed
+                                </span>
+                                <span th:case="'CANCELED'" class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>Canceled
+                                </span>
+                            </span>
+                            <span class="text-muted ms-3">
+                                Created: <span th:text="${#temporals.format(order.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                            </span>
+                        </div>
+                        <div class="btn-group">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" 
+                                        data-bs-toggle="dropdown">
+                                    <i class="fas fa-cog me-1"></i>Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li th:if="${order.status.name() == 'PENDING'}">
+                                        <button class="dropdown-item" th:onclick="|updateOrderStatus(${order.id}, 'PROCESSED')|">
+                                            <i class="fas fa-check text-success me-2"></i>Mark as Processed
+                                        </button>
+                                    </li>
+                                    <li th:if="${order.status.name() == 'PENDING'}">
+                                        <button class="dropdown-item" th:onclick="|updateOrderStatus(${order.id}, 'CANCELED')|">
+                                            <i class="fas fa-times text-danger me-2"></i>Cancel Order
+                                        </button>
+                                    </li>
+                                    <li th:if="${order.status.name() == 'PROCESSED'}">
+                                        <button class="dropdown-item" th:onclick="|updateOrderStatus(${order.id}, 'PENDING')|">
+                                            <i class="fas fa-undo text-warning me-2"></i>Mark as Pending
+                                        </button>
+                                    </li>
+                                    <li th:if="${order.status.name() == 'CANCELED'}">
+                                        <button class="dropdown-item" th:onclick="|updateOrderStatus(${order.id}, 'PENDING')|">
+                                            <i class="fas fa-undo text-warning me-2"></i>Restore Order
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" th:onclick="|deleteOrder(${order.id})|">
+                                            <i class="fas fa-trash me-2"></i>Delete Order
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <a th:href="@{/admin/orders}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Orders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Order Summary -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-6"><strong>Order ID:</strong></div>
+                                <div class="col-6">#<span th:text="${order.id}">123</span></div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6"><strong>Status:</strong></div>
+                                <div class="col-6">
+                                    <span th:switch="${order.status.name()}" class="badge">
+                                        <span th:case="'PENDING'" class="badge bg-warning text-dark">Pending</span>
+                                        <span th:case="'PROCESSED'" class="badge bg-success">Processed</span>
+                                        <span th:case="'CANCELED'" class="badge bg-danger">Canceled</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6"><strong>Total Amount:</strong></div>
+                                <div class="col-6">
+                                    <strong class="text-success">$<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></strong>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6"><strong>Items Count:</strong></div>
+                                <div class="col-6"><span th:text="${order.items.size()}">0</span> items</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Order Date:</strong></div>
+                                <div class="col-6">
+                                    <span th:text="${#temporals.format(order.createdAt, 'MMM dd, yyyy')}">Date</span><br>
+                                    <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'HH:mm')}">Time</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <strong th:text="${order.customer.username}">Customer Name</strong>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <i class="fas fa-envelope me-2 text-muted"></i>
+                                    <span th:text="${order.customer.email}">customer@example.com</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <small class="text-muted">Customer ID: <span th:text="${order.customer.id}">1</span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Order Items</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="item : ${order.items}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img th:if="${item.product.imageUrl != null and !item.product.imageUrl.isEmpty()}" 
+                                                         th:src="${item.product.imageUrl}" 
+                                                         th:alt="${item.product.name}"
+                                                         class="img-thumbnail me-3" 
+                                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <div th:unless="${item.product.imageUrl != null and !item.product.imageUrl.isEmpty()}" 
+                                                         class="bg-light border rounded me-3 d-flex align-items-center justify-content-center"
+                                                         style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-image text-muted"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1" th:text="${item.product.name}">Product Name</h6>
+                                                        <small class="text-muted">
+                                                            ID: <span th:text="${item.product.id}">1</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                $<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span>
+                                            </td>
+                                            <td>
+                                                <span th:text="${item.quantity}">1</span>
+                                            </td>
+                                            <td>
+                                                <strong>$<span th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">0.00</span></strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total:</th>
+                                            <th>
+                                                <strong class="text-success fs-5">
+                                                    $<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span>
+                                                </strong>
+                                            </th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Status Modal -->
+        <div class="modal fade" id="updateStatusModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Order Status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to update the status of order <strong id="updateOrderId"></strong>?</p>
+                        <p>New status: <span id="updateOrderStatus" class="badge"></span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="updateStatusForm" method="post">
+                            <input type="hidden" id="newStatus" name="status">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Order Modal -->
+        <div class="modal fade" id="deleteOrderModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete order <strong id="deleteOrderId"></strong>?</p>
+                        <p class="text-danger">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteOrderForm" method="post">
+                            <button type="submit" class="btn btn-danger">Delete Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function updateOrderStatus(orderId, newStatus) {
+                document.getElementById('updateOrderId').textContent = '#' + orderId;
+                document.getElementById('newStatus').value = newStatus;
+                
+                const statusSpan = document.getElementById('updateOrderStatus');
+                statusSpan.textContent = newStatus;
+                statusSpan.className = 'badge bg-' + getStatusColor(newStatus);
+                
+                // Create hidden input for redirect URL to stay on current page
+                let redirectInput = document.getElementById('redirectUrl');
+                if (!redirectInput) {
+                    redirectInput = document.createElement('input');
+                    redirectInput.type = 'hidden';
+                    redirectInput.name = 'redirectUrl';
+                    redirectInput.id = 'redirectUrl';
+                    document.getElementById('updateStatusForm').appendChild(redirectInput);
+                }
+                redirectInput.value = window.location.pathname;
+                
+                document.getElementById('updateStatusForm').action = '/admin/orders/status?id=' + orderId;
+                
+                const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+                modal.show();
+            }
+
+            function deleteOrder(orderId) {
+                document.getElementById('deleteOrderId').textContent = '#' + orderId;
+                document.getElementById('deleteOrderForm').action = `/admin/orders/${orderId}/delete`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('deleteOrderModal'));
+                modal.show();
+            }
+
+            function getStatusColor(status) {
+                switch(status) {
+                    case 'PENDING': return 'warning';
+                    case 'PROCESSED': return 'success';
+                    case 'CANCELED': return 'danger';
+                    default: return 'secondary';
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

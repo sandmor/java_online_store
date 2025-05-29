@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Order Details - Online Store</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container mt-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/orders}" class="text-decoration-none">My Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Order Details</li>
+                </ol>
+            </nav>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Order Header -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">Order #<span th:text="${order.id}">12345</span></h4>
+                                <small class="text-muted">
+                                    Placed on <span th:text="${#temporals.format(order.createdAt, 'MMMM dd, yyyy')}">Date</span>
+                                    at <span th:text="${#temporals.format(order.createdAt, 'HH:mm')}">Time</span>
+                                </small>
+                            </div>
+                            <div>
+                                <span th:switch="${order.status.name()}" class="badge fs-6">
+                                    <span th:case="'PENDING'" class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                    <span th:case="'PROCESSED'" class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Processed
+                                    </span>
+                                    <span th:case="'CANCELED'" class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Canceled
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body" th:if="${order.status.name() == 'PENDING'}">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Order Status:</strong> Your order is being processed. 
+                                You can still cancel it if needed.
+                            </div>
+                            <button type="button" class="btn btn-outline-danger" onclick="cancelOrder([[${order.id}]])">
+                                <i class="fas fa-times me-2"></i>Cancel Order
+                            </button>
+                        </div>
+                        <div class="card-body" th:if="${order.status.name() == 'PROCESSED'}">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Order Processed:</strong> Your order has been processed and will be shipped soon.
+                            </div>
+                        </div>
+                        <div class="card-body" th:if="${order.status.name() == 'CANCELED'}">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle me-2"></i>
+                                <strong>Order Canceled:</strong> This order has been canceled.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>Order Items
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th class="text-center">Price</th>
+                                            <th class="text-center">Quantity</th>
+                                            <th class="text-center">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="item : ${order.items}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img th:if="${item.product.hasImage()}" 
+                                                         th:src="${item.product.imageUrl}" 
+                                                         th:alt="${item.product.name}"
+                                                         class="img-thumbnail me-3" 
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                    <div th:unless="${item.product.hasImage()}" 
+                                                         class="bg-light border rounded me-3 d-flex align-items-center justify-content-center"
+                                                         style="width: 60px; height: 60px;">
+                                                        <i class="fas fa-image text-muted"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1">
+                                                            <a th:href="@{/products/{id}(id=${item.product.id})}" 
+                                                               class="text-decoration-none" 
+                                                               th:text="${item.product.name}">Product Name</a>
+                                                        </h6>
+                                                        <small class="text-muted" th:text="${item.product.category.name}">Category</small>
+                                                        <br>
+                                                        <small class="text-muted">SKU: <span th:text="${item.product.id}">SKU</span></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <strong>$<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span></strong>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <span th:text="${item.quantity}">1</span>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <strong>$<span th:text="${#numbers.formatDecimal(item.total, 1, 2)}">0.00</span></strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shipping-fast me-2"></i>Shipping Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Shipping Address</h6>
+                                    <p class="mb-0" th:text="${order.shippingAddress ?: 'Not provided'}">Address</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Estimated Delivery</h6>
+                                    <p class="mb-0 text-muted">
+                                        <span th:if="${order.status.name() == 'PROCESSED'}">
+                                            3-5 business days from order processing
+                                        </span>
+                                        <span th:if="${order.status.name() == 'PENDING'}">
+                                            Will be calculated after processing
+                                        </span>
+                                        <span th:if="${order.status.name() == 'CANCELED'}">
+                                            Order canceled - no delivery
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>Payment Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Payment Method</h6>
+                                    <p class="mb-0">
+                                        <i class="fab fa-cc-visa me-2"></i>
+                                        Credit Card ending in 1111
+                                    </p>
+                                    <small class="text-muted">Mock payment - no actual charge</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Payment Status</h6>
+                                    <p class="mb-0">
+                                        <span th:if="${order.status.name() == 'PROCESSED'}" class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>Paid
+                                        </span>
+                                        <span th:if="${order.status.name() == 'PENDING'}" class="text-warning">
+                                            <i class="fas fa-clock me-1"></i>Processing
+                                        </span>
+                                        <span th:if="${order.status.name() == 'CANCELED'}" class="text-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Refunded
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal (<span th:text="${order.items.size()}">0</span> items):</span>
+                                <span>$<span th:text="${#numbers.formatDecimal(order.totalAmount / 1.1, 1, 2)}">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span class="text-success">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (10%):</span>
+                                <span>$<span th:text="${#numbers.formatDecimal(order.totalAmount * 0.1 / 1.1, 1, 2)}">0.00</span></span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total:</strong>
+                                <strong class="text-primary">
+                                    $<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span>
+                                </strong>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a th:href="@{/orders}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                                </a>
+                                <button th:if="${order.status.name() == 'PROCESSED'}" 
+                                        class="btn btn-primary" disabled>
+                                    <i class="fas fa-redo me-2"></i>Reorder (Coming Soon)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Timeline -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Order Timeline</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Order Placed</h6>
+                                        <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'MMM dd, yyyy HH:mm')}">Date</small>
+                                    </div>
+                                </div>
+                                <div th:if="${order.status.name() == 'PROCESSED'}" class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Order Processed</h6>
+                                        <small class="text-muted">Payment confirmed & preparing for shipment</small>
+                                    </div>
+                                </div>
+                                <div th:if="${order.status.name() == 'CANCELED'}" class="timeline-item">
+                                    <div class="timeline-marker bg-danger"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Order Canceled</h6>
+                                        <small class="text-muted">Order has been canceled</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+                            <p class="small text-muted mb-2">
+                                Have questions about your order? Contact our support team.
+                            </p>
+                            <button class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancel Order Modal -->
+        <div class="modal fade" id="cancelOrderModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cancel Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel this order?</p>
+                        <p class="text-muted">This action cannot be undone and any payment will be refunded.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <form id="cancelOrderForm" method="post">
+                            <button type="submit" class="btn btn-danger">Cancel Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .timeline {
+                position: relative;
+                padding-left: 30px;
+            }
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 10px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #e9ecef;
+            }
+            .timeline-item {
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .timeline-marker {
+                position: absolute;
+                left: -24px;
+                top: 0;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+            }
+            .timeline-content {
+                margin-left: 10px;
+            }
+        </style>
+
+        <script>
+            function cancelOrder(orderId) {
+                const form = document.getElementById('cancelOrderForm');
+                form.action = `/orders/${orderId}/cancel`;
+                const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+                modal.show();
+            }
+        </script>
+    </div>
+</body>
+</html>

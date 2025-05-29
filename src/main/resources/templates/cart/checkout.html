@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Checkout - Online Store</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container mt-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/cart}" class="text-decoration-none">Cart</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                </ol>
+            </nav>
+
+            <div class="row">
+                <!-- Checkout Form -->
+                <div class="col-lg-8">
+                    <form th:action="@{/cart/place-order}" method="post">
+                        <!-- Shipping Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-shipping-fast me-2"></i>Shipping Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name *</label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name *</label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           th:value="${currentUser.email}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address *</label>
+                                    <input type="text" class="form-control" id="address" name="address" 
+                                           placeholder="Street address" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="city" class="form-label">City *</label>
+                                        <input type="text" class="form-control" id="city" name="city" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="state" class="form-label">State *</label>
+                                        <input type="text" class="form-control" id="state" name="state" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="zipCode" class="form-label">ZIP Code *</label>
+                                        <input type="text" class="form-control" id="zipCode" name="zipCode" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-credit-card me-2"></i>Payment Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Demo Mode:</strong> This is a mock payment system. No real charges will be made.
+                                    Use any test card number (e.g., 4111111111111111).
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="cardNumber" class="form-label">Card Number *</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
+                                               placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                        <span class="input-group-text">
+                                            <i class="fab fa-cc-visa"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="expiryMonth" class="form-label">Expiry Month *</label>
+                                        <select class="form-select" id="expiryMonth" name="expiryMonth" required>
+                                            <option value="">Month</option>
+                                            <option value="01">01 - January</option>
+                                            <option value="02">02 - February</option>
+                                            <option value="03">03 - March</option>
+                                            <option value="04">04 - April</option>
+                                            <option value="05">05 - May</option>
+                                            <option value="06">06 - June</option>
+                                            <option value="07">07 - July</option>
+                                            <option value="08">08 - August</option>
+                                            <option value="09">09 - September</option>
+                                            <option value="10">10 - October</option>
+                                            <option value="11">11 - November</option>
+                                            <option value="12">12 - December</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="expiryYear" class="form-label">Expiry Year *</label>
+                                        <select class="form-select" id="expiryYear" name="expiryYear" required>
+                                            <option value="">Year</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2027">2027</option>
+                                            <option value="2028">2028</option>
+                                            <option value="2029">2029</option>
+                                            <option value="2030">2030</option>
+                                            <option value="2031">2031</option>
+                                            <option value="2032">2032</option>
+                                            <option value="2033">2033</option>
+                                            <option value="2034">2034</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="cvv" class="form-label">CVV *</label>
+                                        <input type="text" class="form-control" id="cvv" name="cvv" 
+                                               placeholder="123" maxlength="3" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cardName" class="form-label">Name on Card *</label>
+                                    <input type="text" class="form-control" id="cardName" name="cardName" 
+                                           placeholder="John Doe" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Notes -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-sticky-note me-2"></i>Order Notes (Optional)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <textarea class="form-control" name="notes" rows="3" 
+                                          placeholder="Special delivery instructions, gift message, etc."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/cart}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Place Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Items -->
+                            <div class="mb-3">
+                                <h6>Items (<span th:text="${cart.items.size()}">0</span>)</h6>
+                                <div th:each="item : ${cart.items}" class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <small th:text="${item.product.name}">Product</small>
+                                        <br>
+                                        <small class="text-muted">Qty: <span th:text="${item.quantity}">1</span></small>
+                                    </div>
+                                    <small>$<span th:text="${#numbers.formatDecimal(item.total, 1, 2)}">0.00</span></small>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Totals -->
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>$<span th:text="${#numbers.formatDecimal(cart.totalAmount, 1, 2)}">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span class="text-success">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (10%):</span>
+                                <span>$<span th:text="${#numbers.formatDecimal(cart.totalAmount * 0.1, 1, 2)}">0.00</span></span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total:</strong>
+                                <strong class="text-success">
+                                    $<span th:text="${#numbers.formatDecimal(cart.totalAmount * 1.1, 1, 2)}">0.00</span>
+                                </strong>
+                            </div>
+
+                            <!-- Security Info -->
+                            <div class="bg-light p-3 rounded">
+                                <div class="text-center">
+                                    <i class="fas fa-shield-alt text-success me-2"></i>
+                                    <small class="text-muted">Secure SSL Encryption</small>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <i class="fab fa-cc-visa me-1"></i>
+                                    <i class="fab fa-cc-mastercard me-1"></i>
+                                    <i class="fab fa-cc-amex me-1"></i>
+                                    <i class="fab fa-cc-paypal"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Return Policy -->
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6><i class="fas fa-undo me-2"></i>Return Policy</h6>
+                            <small class="text-muted">
+                                30-day return policy. Items must be in original condition.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Format card number input
+            document.getElementById('cardNumber').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+                e.target.value = value;
+            });
+
+            // Only allow numbers for CVV
+            document.getElementById('cvv').addEventListener('input', function(e) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+        </script>
+    </div>
+</body>
+</html>

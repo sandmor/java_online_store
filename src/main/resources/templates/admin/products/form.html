@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${product.id != null ? 'Edit Product - Admin' : 'Add Product - Admin'}">Product Form - Admin</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container mt-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-box me-2"></i>
+                    <span th:text="${product.id != null ? 'Edit Product' : 'Add New Product'}">Product Form</span>
+                </h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin}" class="text-decoration-none">Admin</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin/products}" class="text-decoration-none">Products</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" 
+                            th:text="${product.id != null ? 'Edit' : 'Add'}">Form</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <form th:action="@{/admin/products/save}" 
+                          th:object="${product}" method="post" enctype="multipart/form-data">
+                        
+                        <input type="hidden" th:if="${product.id != null}" th:field="*{id}">
+                        
+                        <!-- Basic Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Product Name *</label>
+                                    <input type="text" class="form-control" id="name" 
+                                           th:field="*{name}" 
+                                           th:errorclass="is-invalid" 
+                                           required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" 
+                                         th:errors="*{name}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" rows="4" 
+                                              th:field="*{description}"
+                                              placeholder="Enter product description..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category *</label>
+                                    <select class="form-select" id="category" th:field="*{category.id}" required>
+                                        <option value="">Select a category</option>
+                                        <option th:each="category : ${categories}" 
+                                                th:value="${category.id}" 
+                                                th:text="${category.name}"
+                                                th:selected="${product.category != null and product.category.id == category.id}">Category</option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" 
+                                         th:errors="*{category}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing & Inventory -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Pricing & Inventory</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="price" class="form-label">Price *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="price" 
+                                                   th:field="*{price}" 
+                                                   th:errorclass="is-invalid"
+                                                   step="0.01" min="0" 
+                                                   required>
+                                        </div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" 
+                                             th:errors="*{price}"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="stockQuantity" class="form-label">Stock Quantity *</label>
+                                        <input type="number" class="form-control" id="stockQuantity" 
+                                               th:field="*{stockQuantity}" 
+                                               th:errorclass="is-invalid"
+                                               min="0" 
+                                               required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}" 
+                                             th:errors="*{stockQuantity}"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Product Image -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Product Image</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="imageUrl" class="form-label">Image URL</label>
+                                    <input type="url" class="form-control" id="imageUrl" 
+                                           th:field="*{imageUrl}"
+                                           placeholder="https://example.com/image.jpg"
+                                           onchange="previewImage()">
+                                    <div class="form-text">Enter a direct URL to the product image</div>
+                                </div>
+
+                                <div class="mb-3" th:if="${product.hasImage()}">
+                                    <label class="form-label">Current Image</label>
+                                    <div>
+                                        <img id="imagePreview" th:src="${product.imageUrl}" 
+                                             alt="Product Image" class="img-thumbnail" 
+                                             style="max-width: 200px; max-height: 200px;">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" th:unless="${product.hasImage()}">
+                                    <div class="border rounded p-3 text-center bg-light" id="imagePlaceholder">
+                                        <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                                        <p class="text-muted">Image preview will appear here</p>
+                                    </div>
+                                    <img id="imagePreview" class="img-thumbnail d-none" 
+                                         style="max-width: 200px; max-height: 200px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Specifications -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Product Specifications</h5>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecification()">
+                                    <i class="fas fa-plus me-1"></i>Add Spec
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="specificationsContainer">
+                                    <div th:if="${product.specifications != null and !product.specifications.empty}">
+                                        <div th:each="spec : ${product.specifications}" 
+                                             class="specification-item mb-3">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <input type="text" class="form-control spec-key-input" 
+                                                           th:value="${spec.key}"
+                                                           placeholder="Specification name"
+                                                           onchange="updateSpecificationKey(this)">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <input type="text" class="form-control spec-value-input" 
+                                                           th:value="${spec.value}"
+                                                           placeholder="Specification value"
+                                                           onchange="updateSpecificationMapping(this)">
+                                                    <input type="hidden" 
+                                                           th:name="'specifications[' + ${spec.key} + ']'"
+                                                           th:value="${spec.value}">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-outline-danger" 
+                                                            onclick="removeSpecification(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    Add key specifications like dimensions, material, color, etc.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/admin/products}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Products
+                                    </a>
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2">
+                                            <i class="fas fa-undo me-2"></i>Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>
+                                            <span th:text="${product.id != null ? 'Update Product' : 'Create Product'}">Save</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let specificationIndex = /*[[${product.specifications != null ? product.specifications.size() : 0}]]*/ 0;
+
+            function previewImage() {
+                const url = document.getElementById('imageUrl').value;
+                const preview = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('imagePlaceholder');
+                
+                if (url) {
+                    preview.src = url;
+                    preview.classList.remove('d-none');
+                    if (placeholder) {
+                        placeholder.classList.add('d-none');
+                    }
+                } else {
+                    preview.classList.add('d-none');
+                    if (placeholder) {
+                        placeholder.classList.remove('d-none');
+                    }
+                }
+            }
+
+            function addSpecification() {
+                const container = document.getElementById('specificationsContainer');
+                const div = document.createElement('div');
+                div.className = 'specification-item mb-3';
+                
+                const specKey = 'newSpec' + Date.now(); // Generate unique key
+                div.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control spec-key-input" 
+                                   placeholder="Specification name"
+                                   onchange="updateSpecificationKey(this)">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control spec-value-input" 
+                                   placeholder="Specification value"
+                                   onchange="updateSpecificationMapping(this)">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="removeSpecification(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+                specificationIndex++;
+            }
+
+            function updateSpecificationKey(keyInput) {
+                const row = keyInput.closest('.row');
+                const valueInput = row.querySelector('.spec-value-input');
+                const hiddenInput = row.querySelector('input[type="hidden"]');
+                const oldKey = hiddenInput ? hiddenInput.name.match(/specifications\[([^\]]+)\]/)[1] : null;
+                const newKey = keyInput.value.trim();
+                
+                if (newKey && oldKey !== newKey) {
+                    // Remove old hidden input
+                    if (hiddenInput) {
+                        hiddenInput.remove();
+                    }
+                    // Create new hidden input with new key
+                    const newHiddenInput = document.createElement('input');
+                    newHiddenInput.type = 'hidden';
+                    newHiddenInput.name = `specifications[${newKey}]`;
+                    newHiddenInput.value = valueInput.value;
+                    valueInput.parentNode.appendChild(newHiddenInput);
+                }
+            }
+
+            function updateSpecificationMapping(valueInput) {
+                const row = valueInput.closest('.row');
+                const keyInput = row.querySelector('.spec-key-input');
+                const key = keyInput.value.trim();
+                const value = valueInput.value.trim();
+                
+                // Find existing hidden input
+                let hiddenInput = row.querySelector('input[type="hidden"]');
+                
+                if (key) {
+                    if (hiddenInput) {
+                        // Update existing hidden input
+                        hiddenInput.name = `specifications[${key}]`;
+                        hiddenInput.value = value;
+                    } else {
+                        // Create new hidden input
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = `specifications[${key}]`;
+                        hiddenInput.value = value;
+                        valueInput.parentNode.appendChild(hiddenInput);
+                    }
+                } else if (hiddenInput) {
+                    // Remove hidden input if key is empty
+                    hiddenInput.remove();
+                }
+            }
+
+            function updateSpecificationValue(input, key) {
+                const hiddenInput = input.closest('.row').querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.value = input.value;
+                }
+            }
+
+            function removeSpecification(button) {
+                button.closest('.specification-item').remove();
+            }
+
+            // Form validation
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const name = document.getElementById('name').value;
+                const price = document.getElementById('price').value;
+                const stockQuantity = document.getElementById('stockQuantity').value;
+                const category = document.getElementById('category').value;
+
+                if (!name.trim()) {
+                    e.preventDefault();
+                    alert('Product name is required.');
+                    return;
+                }
+
+                if (!price || parseFloat(price) < 0) {
+                    e.preventDefault();
+                    alert('Please enter a valid price.');
+                    return;
+                }
+
+                if (!stockQuantity || parseInt(stockQuantity) < 0) {
+                    e.preventDefault();
+                    alert('Please enter a valid stock quantity.');
+                    return;
+                }
+
+                if (!category) {
+                    e.preventDefault();
+                    alert('Please select a category.');
+                    return;
+                }
+
+                // Update any new specifications before submitting
+                const specItems = document.querySelectorAll('.specification-item');
+                specItems.forEach(item => {
+                    const keyInput = item.querySelector('.spec-key-input');
+                    const valueInput = item.querySelector('.spec-value-input');
+                    if (keyInput && valueInput) {
+                        updateSpecificationMapping(valueInput);
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Online Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .navbar-brand { font-weight: bold; }
+        .card-img-top { height: 250px; object-fit: cover; }
+        .product-card { transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-5px); }
+        .cart-badge { position: relative; }
+        .cart-count { 
+            position: absolute; 
+            top: -8px; 
+            right: -8px; 
+            background: #dc3545; 
+            color: white; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            font-size: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .sidebar { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shop"></i> Online Store
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/products">Products</a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null and session.currentUser.customer}">
+                        <a class="nav-link" href="/orders">My Orders</a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null and session.currentUser.admin}">
+                        <a class="nav-link" href="/admin/dashboard">Admin Panel</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link cart-badge" href="/cart">
+                            <i class="bi bi-cart3"></i>
+                            <span class="cart-count" th:if="${cartItemCount != null and cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser == null}">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser == null}">
+                        <a class="nav-link" href="/register">Register</a>
+                    </li>
+                    <li class="nav-item dropdown" th:if="${session.currentUser != null}">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span th:text="${session.currentUser.fullName}">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="sidebar p-3 rounded">
+                    <h5>Search</h5>
+                    <form th:action="@{/products}" method="get" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" th:value="${searchTerm}" placeholder="Search products...">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <h5>Categories</h5>
+                    <div class="list-group">
+                        <a th:href="@{/products}" 
+                           class="list-group-item list-group-item-action"
+                           th:classappend="${selectedCategory == null} ? 'active' : ''">
+                            All Products
+                        </a>
+                        <div th:each="category : ${categories}">
+                            <a th:href="@{/products(categoryId=${category.id})}" 
+                               class="list-group-item list-group-item-action"
+                               th:classappend="${selectedCategory != null and selectedCategory.id == category.id} ? 'active' : ''"
+                               th:text="${category.name}">
+                                Category Name
+                            </a>
+                            <div th:if="${category.children != null and !category.children.isEmpty()}" class="ms-3">
+                                <a th:each="child : ${category.children}"
+                                   th:href="@{/products(categoryId=${child.id})}" 
+                                   class="list-group-item list-group-item-action border-0 py-1"
+                                   th:classappend="${selectedCategory != null and selectedCategory.id == child.id} ? 'active' : ''"
+                                   th:text="'→ ' + ${child.name}">
+                                    Subcategory
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 th:if="${selectedCategory != null}" th:text="${selectedCategory.name}">Category Name</h2>
+                        <h2 th:if="${selectedCategory == null and searchTerm != null}" th:text="'Search results for: ' + ${searchTerm}">Search Results</h2>
+                        <h2 th:if="${selectedCategory == null and searchTerm == null}">All Products</h2>
+                        <p class="text-muted" th:text="${#lists.size(products)} + ' products found'">X products found</p>
+                    </div>
+                </div>
+                
+                <!-- Products Grid -->
+                <div class="row" th:if="${!products.isEmpty()}">
+                    <div class="col-lg-4 col-md-6 mb-4" th:each="product : ${products}">
+                        <div class="card product-card h-100">
+                            <img th:src="${product.hasImage() ? product.imageUrl : 'https://via.placeholder.com/300x250'}" 
+                                 class="card-img-top" 
+                                 th:alt="${product.name}">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+                                <p class="card-text flex-grow-1" th:text="${#strings.abbreviate(product.description, 100)}">Product description</p>
+                                <div class="mt-auto">
+                                    <p class="h5 text-primary mb-2">$<span th:text="${product.price}">0.00</span></p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted" th:text="${product.stockQuantity > 0 ? 'In Stock (' + product.stockQuantity + ')' : 'Out of Stock'}">Stock info</small>
+                                        <span class="badge bg-secondary" th:text="${product.category.name}">Category</span>
+                                    </div>
+                                    <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-primary w-100">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Products Found -->
+                <div th:if="${products.isEmpty()}" class="text-center py-5">
+                    <i class="bi bi-search display-1 text-muted"></i>
+                    <h3 class="mt-3">No products found</h3>
+                    <p class="text-muted">Try adjusting your search criteria or browse different categories.</p>
+                    <a href="/products" class="btn btn-primary">View All Products</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

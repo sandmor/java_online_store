@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Management - Admin</title>
+</head>
+<body th:replace="~{layout :: layout(~{::#content})}">
+    <div id="content">
+        <div class="container-fluid mt-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-users me-2"></i>User Management</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin}" class="text-decoration-none">Admin</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Users</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <a th:href="@{/admin/users/new}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add New User
+                            </a>
+                        </div>
+                        <div class="col-md-8">
+                            <form th:action="@{/admin/users}" method="get" class="d-flex gap-2">
+                                <select name="role" class="form-select" style="width: auto;">
+                                    <option value="">All Roles</option>
+                                    <option th:each="role : ${roles}" 
+                                            th:value="${role.name()}" 
+                                            th:text="${role.displayName}"
+                                            th:selected="${selectedRole != null and selectedRole == role.name()}">Role</option>
+                                </select>
+                                <select name="status" class="form-select" style="width: auto;">
+                                    <option value="">All Status</option>
+                                    <option value="active" th:selected="${selectedStatus != null and selectedStatus == 'active'}">Active Only</option>
+                                    <option value="inactive" th:selected="${selectedStatus != null and selectedStatus == 'inactive'}">Inactive Only</option>
+                                </select>
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Search users..." th:value="${search}">
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Users</h5>
+                    <span class="badge bg-primary" th:text="${users.size()} + ' total'">0 total</span>
+                </div>
+                <div class="card-body">
+                    <div th:if="${users.empty}" class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No users found</h5>
+                        <p class="text-muted">Add some users to get started!</p>
+                        <a th:href="@{/admin/users/new}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add First User
+                        </a>
+                    </div>
+
+                    <div th:unless="${users.empty}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="user : ${users}">
+                                    <td th:text="${user.id}">1</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2" th:style="'background-color: ' + ${#strings.substring(user.username, 0, 1).toUpperCase() == 'A' ? '#007bff' : (#strings.substring(user.username, 0, 1).toUpperCase() == 'B' ? '#28a745' : '#ffc107')}">
+                                                <span th:text="${#strings.substring(user.username, 0, 1).toUpperCase()}">U</span>
+                                            </div>
+                                            <span th:text="${user.username}">Username</span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${user.email}">email@example.com</td>
+                                    <td>
+                                        <span th:switch="${user.role.name()}" class="badge">
+                                            <span th:case="'ADMIN'" class="badge bg-danger">Admin</span>
+                                            <span th:case="'USER'" class="badge bg-primary">User</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${user.active}" class="badge bg-success">Active</span>
+                                        <span th:unless="${user.active}" class="badge bg-secondary">Inactive</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(user.createdAt, 'MMM dd, yyyy')}">Date</span>
+                                        <br>
+                                        <small class="text-muted" th:text="${#temporals.format(user.createdAt, 'HH:mm')}">Time</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/admin/users/{id}/edit(id=${user.id})}" 
+                                               class="btn btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <!-- Activation/Deactivation buttons -->
+                                            <button th:unless="${currentUser != null and currentUser.id != null and currentUser.id == user.id}"
+                                                    th:if="${user.active}"
+                                                    type="button" 
+                                                    class="btn btn-outline-warning deactivate-user-btn" 
+                                                    title="Deactivate User"
+                                                    th:data-user-id="${user.id}"
+                                                    th:data-username="${user.username}">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                            
+                                            <button th:unless="${(currentUser != null and currentUser.id != null and currentUser.id == user.id) or user.active}"
+                                                    type="button" 
+                                                    class="btn btn-outline-success activate-user-btn" 
+                                                    title="Activate User"
+                                                    th:data-user-id="${user.id}"
+                                                    th:data-username="${user.username}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            
+                                            <button th:unless="${currentUser != null and currentUser.id != null and currentUser.id == user.id}" 
+                                                    type="button" 
+                                                    class="btn btn-outline-danger delete-user-btn" 
+                                                    title="Delete"
+                                                    th:data-user-id="${user.id}"
+                                                    th:data-username="${user.username}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete User Modal -->
+        <div class="modal fade" id="deleteUserModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
+                        <p class="text-danger">This action cannot be undone and will also delete all associated orders.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteUserForm" method="post">
+                            <button type="submit" class="btn btn-danger">Delete User</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Status Change Modal -->
+        <div class="modal fade" id="userStatusModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="statusModalTitle">Change User Status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="statusModalMessage">Are you sure you want to change the status of this user?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="statusChangeForm" method="post">
+                            <button type="submit" class="btn" id="statusConfirmBtn">Confirm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <style>
+            .avatar-circle {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                font-size: 14px;
+            }
+        </style>
+
+        <script>
+            function deleteUser(userId, username) {
+                document.getElementById('deleteUserName').textContent = username;
+                document.getElementById('deleteUserForm').action = `/admin/users/${userId}/delete`;
+                const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+                modal.show();
+            }
+
+            function toggleUserStatus(userId, activate, username) {
+                const action = activate ? 'activate' : 'deactivate';
+                const actionText = activate ? 'activate' : 'deactivate';
+                const statusText = activate ? 'Active' : 'Inactive';
+                
+                document.getElementById('statusModalTitle').textContent = 
+                    `${activate ? 'Activate' : 'Deactivate'} User`;
+                document.getElementById('statusModalMessage').innerHTML = 
+                    `Are you sure you want to ${actionText} user <strong>${username}</strong>?<br>` +
+                    `The user will be marked as <strong>${statusText}</strong>.`;
+                document.getElementById('statusChangeForm').action = `/admin/users/${userId}/${action}`;
+                document.getElementById('statusConfirmBtn').textContent = activate ? 'Activate' : 'Deactivate';
+                document.getElementById('statusConfirmBtn').className = 
+                    activate ? 'btn btn-success' : 'btn btn-warning';
+                
+                const modal = new bootstrap.Modal(document.getElementById('userStatusModal'));
+                modal.show();
+            }
+
+            // Auto-hide alerts after 5 seconds
+            document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.alert:not(.alert-info)');
+                alerts.forEach(alert => {
+                    setTimeout(() => {
+                        alert.style.transition = 'opacity 0.5s';
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500);
+                    }, 5000);
+                });
+
+                // Add event listeners for user action buttons
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.delete-user-btn')) {
+                        const btn = e.target.closest('.delete-user-btn');
+                        const userId = btn.dataset.userId;
+                        const username = btn.dataset.username;
+                        deleteUser(userId, username);
+                    }
+                    
+                    if (e.target.closest('.activate-user-btn')) {
+                        const btn = e.target.closest('.activate-user-btn');
+                        const userId = btn.dataset.userId;
+                        const username = btn.dataset.username;
+                        toggleUserStatus(userId, true, username);
+                    }
+                    
+                    if (e.target.closest('.deactivate-user-btn')) {
+                        const btn = e.target.closest('.deactivate-user-btn');
+                        const userId = btn.dataset.userId;
+                        const username = btn.dataset.username;
+                        toggleUserStatus(userId, false, username);
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>
