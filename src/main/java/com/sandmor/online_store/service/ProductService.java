@@ -23,7 +23,6 @@ public interface ProductService {
     long countByCategory(Category category);
     long countActiveByCategoryId(Long categoryId);
     
-    // Enhanced filtering and sorting methods
     List<Product> findWithFilters(ProductFilterCriteria criteria);
     long countInStock();
     long countLowStock();

@@ -38,7 +38,6 @@ public class OrderController {
         List<Order> orders = orderService.findByCustomer(currentUser);
         model.addAttribute("orders", orders);
         
-        // Calculate status counts
         long pendingCount = orders.stream().filter(order -> order.getStatus().name().equals("PENDING")).count();
         long processedCount = orders.stream().filter(order -> order.getStatus().name().equals("PROCESSED")).count();
         long canceledCount = orders.stream().filter(order -> order.getStatus().name().equals("CANCELED")).count();
@@ -47,7 +46,6 @@ public class OrderController {
         model.addAttribute("processedCount", processedCount);
         model.addAttribute("canceledCount", canceledCount);
         
-        // Add cart info
         Optional<ShoppingCart> cart = cartService.findByCustomer(currentUser);
         if (cart.isPresent()) {
             model.addAttribute("cartItemCount", cart.get().getTotalItems());
@@ -70,7 +68,6 @@ public class OrderController {
         
         model.addAttribute("order", order.get());
         
-        // Add cart info
         Optional<ShoppingCart> cart = cartService.findByCustomer(currentUser);
         if (cart.isPresent()) {
             model.addAttribute("cartItemCount", cart.get().getTotalItems());

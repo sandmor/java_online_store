@@ -14,7 +14,6 @@ public interface UserRepository extends BaseRepository<User, Long> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     
-    // Enhanced filtering and sorting methods
     List<User> findWithFilters(UserFilterCriteria criteria);
     List<User> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email);
 }

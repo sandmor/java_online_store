@@ -37,12 +37,12 @@ public class UserAdminController extends BaseAdminController {
                             @RequestParam(required = false) String status,
                             @RequestParam(required = false) String sortBy,
                             @RequestParam(required = false) String sortDir,
+                            @RequestParam(required = false) String error,
                             Model model, HttpSession session) {
         if (!isAdmin(session)) {
             return "redirect:/login";
         }
 
-        // Create filter criteria
         UserFilterCriteria criteria = new UserFilterCriteria();
         criteria.setSearch(search);
         criteria.setRole(role);
@@ -50,10 +50,8 @@ public class UserAdminController extends BaseAdminController {
         criteria.setSortBy(sortBy);
         criteria.setSortDirection(sortDir);
 
-        // Get filtered users from service
         List<User> users = userService.findWithFilters(criteria);
 
-        // Add filter parameters to model for form state
         if (criteria.hasSearch()) {
             model.addAttribute("search", search);
         }
@@ -68,7 +66,6 @@ public class UserAdminController extends BaseAdminController {
             model.addAttribute("sortDir", sortDir);
         }
 
-        // Get statistics
         long totalUsersCount = userService.findAll().size();
         long adminCount = userService.findByRole(UserRole.ADMIN).size();
         long customerCount = userService.findByRole(UserRole.CUSTOMER).size();
@@ -82,6 +79,11 @@ public class UserAdminController extends BaseAdminController {
         // Add current user to model for template access
         User currentUser = (User)session.getAttribute("currentUser");
         model.addAttribute("currentUser", currentUser);
+
+        // Handle error messages from redirect
+        if ("customer_edit_not_allowed".equals(error)) {
+            model.addAttribute("error", "Customer users can only be activated or deactivated, not edited.");
+        }
 
         return "admin/users/list";
     }
@@ -112,6 +114,11 @@ public class UserAdminController extends BaseAdminController {
 
         User originalUser = user.get();
         
+        // Check if the user being edited is a customer - only allow activation/deactivation
+        if (originalUser.getRole() == UserRole.CUSTOMER) {
+            return "redirect:/admin/users?error=customer_edit_not_allowed";
+        }
+        
         User userToEdit = new User();
         userToEdit.setId(originalUser.getId());
         userToEdit.setUsername(originalUser.getUsername());
@@ -121,7 +128,6 @@ public class UserAdminController extends BaseAdminController {
         userToEdit.setRole(originalUser.getRole());
         userToEdit.setCreatedAt(originalUser.getCreatedAt());
         userToEdit.setUpdatedAt(originalUser.getUpdatedAt());
-        // Set password to empty string for edit form
         userToEdit.setPassword("");
 
         // Check if user is editing their own account
@@ -144,12 +150,19 @@ public class UserAdminController extends BaseAdminController {
             return "redirect:/login";
         }
 
-        // Get current user to prevent role changes to self
         User currentUser = (User) session.getAttribute("currentUser");
         boolean isEditingOwnAccount = currentUser != null && currentUser.getId() != null && 
                                     currentUser.getId().equals(user.getId());
 
-        // Prevent admin from changing their own role
+        // Check if trying to edit a customer user (only allow for admin users)
+        if (user.getId() != null) { // Edit mode
+            Optional<User> existingUser = userService.findById(user.getId());
+            if (existingUser.isPresent() && existingUser.get().getRole() == UserRole.CUSTOMER) {
+                redirectAttributes.addFlashAttribute("error", "Customer users can only be activated or deactivated, not edited.");
+                return "redirect:/admin/users";
+            }
+        }
+
         if (isEditingOwnAccount && currentUser != null && currentUser.isAdmin() && 
             (user.getRole() == null || !user.getRole().equals(UserRole.ADMIN))) {
             handleSaveError(new IllegalArgumentException("You cannot change your own admin role"), 
@@ -160,7 +173,6 @@ public class UserAdminController extends BaseAdminController {
             return "admin/users/form";
         }
 
-        // Custom validation for edit mode - password is optional
         boolean isEditMode = user.getId() != null;
         boolean isPasswordEmpty =
             user.getPassword() == null || user.getPassword().trim().isEmpty();
@@ -198,10 +210,8 @@ public class UserAdminController extends BaseAdminController {
                 userService.createUser(user);
                 handleSaveSuccess("created", "user", redirectAttributes);
             } else {
-                // For editing, handle password carefully
                 if (user.getPassword() == null ||
                     user.getPassword().trim().isEmpty()) {
-                    // If password is empty, preserve the existing password
                     user.setPassword(null);
                 }
                 userService.updateUser(user);

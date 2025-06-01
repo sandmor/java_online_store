@@ -134,7 +134,6 @@ public class Order {
         this.notes = notes;
     }
     
-    // Business methods
     public void processOrder() {
         if (status == OrderStatus.PENDING) {
             this.status = OrderStatus.PROCESSED;

@@ -132,7 +132,6 @@ public class InMemoryUserRepository implements UserRepository {
             }
         }
         
-        // Apply status filter
         if (criteria.hasStatus()) {
             String statusFilter = criteria.getStatus().toLowerCase();
             switch (statusFilter) {
@@ -153,7 +152,6 @@ public class InMemoryUserRepository implements UserRepository {
             }
         }
         
-        // Apply sorting
         if (criteria.hasSorting()) {
             Comparator<User> comparator;
             

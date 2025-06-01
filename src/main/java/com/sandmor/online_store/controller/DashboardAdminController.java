@@ -41,7 +41,6 @@ public class DashboardAdminController extends BaseAdminController {
             return "redirect:/login";
         }
         
-        // Dashboard statistics
         long totalUsers = userService.findAll().size();
         long totalProducts = productService.findAll().size();
         long totalOrders = orderService.findAll().size();
@@ -64,7 +63,6 @@ public class DashboardAdminController extends BaseAdminController {
         model.addAttribute("canceledOrders", canceledOrders);
         model.addAttribute("totalRevenue", totalRevenue);
         
-        // Recent orders - use service method
         List<Order> recentOrders = orderService.findRecentOrders(5);
         model.addAttribute("recentOrders", recentOrders);
         

@@ -32,7 +32,6 @@ public class Product {
     private String imageUrl;
     private boolean active;
     
-    // Custom specifications based on category
     private Map<String, String> specifications;
     
     // Constructors
@@ -123,7 +122,6 @@ public class Product {
         this.specifications = specifications;
     }
     
-    // Helper methods
     public void addSpecification(String key, String value) {
         specifications.put(key, value);
     }

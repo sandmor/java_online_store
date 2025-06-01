@@ -29,7 +29,7 @@ public class User {
     
     private UserRole role;
     
-    private boolean active = true; // Default to active for new users
+    private boolean active = true;
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

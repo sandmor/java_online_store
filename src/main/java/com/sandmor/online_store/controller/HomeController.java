@@ -74,7 +74,6 @@ public class HomeController {
         model.addAttribute("products", products);
         model.addAttribute("categories", rootCategories);
         
-        // Add cart info if user is logged in
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser != null) {
             Optional<ShoppingCart> cart = cartService.findByCustomer(currentUser);
@@ -95,7 +94,6 @@ public class HomeController {
         
         model.addAttribute("product", product.get());
         
-        // Add cart info if user is logged in
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser != null) {
             Optional<ShoppingCart> cart = cartService.findByCustomer(currentUser);

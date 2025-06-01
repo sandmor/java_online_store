@@ -10,7 +10,6 @@ public class OrderItem {
     private String productName; // Snapshot of product name at time of order
     private String productDescription; // Snapshot of product description at time of order
     
-    // Constructors
     public OrderItem() {}
     
     public OrderItem(Product product, Integer quantity, BigDecimal unitPrice) {
@@ -71,7 +70,6 @@ public class OrderItem {
         this.productDescription = productDescription;
     }
     
-    // Helper methods
     public BigDecimal getTotalPrice() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

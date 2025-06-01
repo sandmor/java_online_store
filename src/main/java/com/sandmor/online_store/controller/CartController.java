@@ -160,13 +160,10 @@ public class CartController {
             // Build shipping address from form fields
             String shippingAddress = String.format("%s, %s, %s %s", address, city, state, zipCode);
             
-            // Build expiry date from month and year
             String expiryDate = expiryMonth + "/" + expiryYear;
             
-            // Create order
             Order order = orderService.createOrderFromCart(currentUser, cart, "Credit Card", shippingAddress);
             
-            // Process payment
             Order processedOrder = orderService.processPayment(order, cardNumber, cvv, expiryDate);
             
             redirectAttributes.addFlashAttribute("success", "Order placed successfully! Order number: " + processedOrder.getOrderNumber());

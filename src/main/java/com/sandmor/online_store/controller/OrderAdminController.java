@@ -41,14 +41,12 @@ public class OrderAdminController extends BaseAdminController {
             return "redirect:/login";
         }
         
-        // Create filter criteria
         OrderFilterCriteria criteria = new OrderFilterCriteria();
         criteria.setSearch(search);
         criteria.setStatus(status);
         criteria.setSortBy(sortBy);
         criteria.setSortDirection(sortDir);
         
-        // Parse date parameters
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             try {
                 criteria.setFromDate(java.time.LocalDate.parse(fromDate));
@@ -65,10 +63,8 @@ public class OrderAdminController extends BaseAdminController {
             }
         }
         
-        // Get filtered orders from service
         List<Order> orders = orderService.findWithFilters(criteria);
         
-        // Add filter parameters to model for form state
         if (criteria.hasSearch()) {
             model.addAttribute("searchTerm", search);
         }
@@ -86,7 +82,6 @@ public class OrderAdminController extends BaseAdminController {
             model.addAttribute("toDate", toDate);
         }
         
-        // Calculate statistics manually from the orders
         List<Order> allOrders = orderService.findAll();
         long totalOrders = allOrders.size();
         long pendingCount = allOrders.stream().filter(o -> o.getStatus() == OrderStatus.PENDING).count();
@@ -151,7 +146,6 @@ public class OrderAdminController extends BaseAdminController {
             OrderStatus newStatus = OrderStatus.valueOf(status.toUpperCase());
             OrderStatus currentStatus = order.getStatus();
             
-            // Allow more flexible status transitions
             if (newStatus == OrderStatus.PROCESSED && currentStatus == OrderStatus.PENDING) {
                 orderService.processOrder(id);
                 redirectAttributes.addFlashAttribute("success", "Order processed successfully!");
@@ -159,7 +153,6 @@ public class OrderAdminController extends BaseAdminController {
                 orderService.cancelOrder(id);
                 redirectAttributes.addFlashAttribute("success", "Order cancelled successfully!");
             } else if (newStatus == OrderStatus.PENDING && (currentStatus == OrderStatus.PROCESSED || currentStatus == OrderStatus.CANCELED)) {
-                // Direct status update for reverting to pending
                 order.setStatus(OrderStatus.PENDING);
                 orderService.updateOrder(order);
                 redirectAttributes.addFlashAttribute("success", "Order status updated to pending!");
@@ -172,7 +165,6 @@ public class OrderAdminController extends BaseAdminController {
             redirectAttributes.addFlashAttribute("error", "Error updating order status: " + e.getMessage());
         }
         
-        // Use provided redirect URL or default to orders list
         String redirectPath = redirectUrl != null && !redirectUrl.trim().isEmpty() ? redirectUrl : "/admin/orders";
         return "redirect:" + redirectPath;
     }
@@ -250,7 +242,6 @@ public class OrderAdminController extends BaseAdminController {
                                     count++;
                                 }
                             } catch (Exception e) {
-                                // Log error but continue with other orders
                                 System.err.println("Error updating order " + orderId + ": " + e.getMessage());
                             }
                         }
@@ -287,7 +278,6 @@ public class OrderAdminController extends BaseAdminController {
                             count++;
                         }
                     } catch (Exception e) {
-                        // Log error but continue with other orders
                         System.err.println("Error deleting order " + id + ": " + e.getMessage());
                     }
                 }

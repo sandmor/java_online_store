@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     public boolean simulatePayment(String creditCardNumber, String cvv, String expiryDate) {
-        return true; // Simulate a successful payment for simplicity
+        return true; // Simulate a successful payment
     }
     
     @Override

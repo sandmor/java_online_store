@@ -46,7 +46,6 @@ public class ProductAdminController extends BaseAdminController {
             return "redirect:/login";
         }
         
-        // Create filter criteria
         ProductFilterCriteria criteria = new ProductFilterCriteria();
         criteria.setSearch(search);
         criteria.setCategoryId(category);
@@ -54,11 +53,9 @@ public class ProductAdminController extends BaseAdminController {
         criteria.setSortBy(sortBy);
         criteria.setSortDirection(sortDir);
         
-        // Get filtered products from service
         List<Product> products = productService.findWithFilters(criteria);
         List<Category> categories = categoryService.findAll();
         
-        // Add filter parameters to model for form state
         if (criteria.hasSearch()) {
             model.addAttribute("searchTerm", search);
         }
@@ -73,7 +70,6 @@ public class ProductAdminController extends BaseAdminController {
             model.addAttribute("sortDir", sortDir);
         }
         
-        // Get statistics using service methods
         long totalProductsCount = productService.findAll().size();
         long inStockCount = productService.countInStock();
         long lowStockCount = productService.countLowStock();

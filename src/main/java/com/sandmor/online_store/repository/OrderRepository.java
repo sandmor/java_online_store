@@ -14,7 +14,6 @@ public interface OrderRepository extends BaseRepository<Order, Long> {
     List<Order> findByCustomerAndStatus(User customer, OrderStatus status);
     Optional<Order> findByOrderNumber(String orderNumber);
     
-    // Enhanced filtering and sorting methods
     List<Order> findWithFilters(OrderFilterCriteria criteria);
     List<Order> findRecentOrders(int limit);
 }

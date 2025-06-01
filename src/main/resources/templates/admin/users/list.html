@@ -54,6 +54,25 @@
                 </div>
             </div>
 
+            <!-- Alert Messages -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${error}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${warning}">Warning message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
             <!-- Users Table -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -98,7 +117,7 @@
                                     <td>
                                         <span th:switch="${user.role.name()}" class="badge">
                                             <span th:case="'ADMIN'" class="badge bg-danger">Admin</span>
-                                            <span th:case="'USER'" class="badge bg-primary">User</span>
+                                            <span th:case="'CUSTOMER'" class="badge bg-primary">Customer</span>
                                         </span>
                                     </td>
                                     <td>
@@ -112,12 +131,20 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a th:href="@{/admin/users/{id}/edit(id=${user.id})}" 
-                                               class="btn btn-outline-warning" title="Edit">
+                                            <a th:if="${user.role.name() == 'ADMIN'}"
+                                               th:href="@{/admin/users/{id}/edit(id=${user.id})}" 
+                                               class="btn btn-outline-warning" title="Edit Admin">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             
-                                            <!-- Activation/Deactivation buttons -->
+                                            <span th:if="${user.role.name() == 'CUSTOMER'}" 
+                                                  class="text-muted small" 
+                                                  title="Customer users can only be activated or deactivated">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Edit restricted
+                                            </span>
+                                            
+                                            <!-- Activation/Deactivation buttons (for all users except current user) -->
                                             <button th:unless="${currentUser != null and currentUser.id != null and currentUser.id == user.id}"
                                                     th:if="${user.active}"
                                                     type="button" 
@@ -137,10 +164,12 @@
                                                 <i class="fas fa-check"></i>
                                             </button>
                                             
-                                            <button th:unless="${currentUser != null and currentUser.id != null and currentUser.id == user.id}" 
+                                            <!-- Delete button only for admin users and not current user -->
+                                            <button th:if="${user.role.name() == 'ADMIN'}"
+                                                    th:unless="${currentUser != null and currentUser.id != null and currentUser.id == user.id}" 
                                                     type="button" 
                                                     class="btn btn-outline-danger delete-user-btn" 
-                                                    title="Delete"
+                                                    title="Delete Admin User"
                                                     th:data-user-id="${user.id}"
                                                     th:data-username="${user.username}">
                                                 <i class="fas fa-trash"></i>

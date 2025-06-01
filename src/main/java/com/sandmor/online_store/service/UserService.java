@@ -20,11 +20,9 @@ public interface UserService {
     boolean existsByEmail(String email);
     User authenticate(String username, String password);
     
-    // User activation/deactivation methods
     void activateUser(Long id);
     void deactivateUser(Long id);
     void setUserActiveStatus(Long id, boolean active);
     
-    // Enhanced filtering and sorting methods
     List<User> findWithFilters(UserFilterCriteria criteria);
 }

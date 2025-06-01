@@ -13,7 +13,6 @@ public interface ProductRepository extends BaseRepository<Product, Long> {
     List<Product> findByCategoryAndActiveTrue(Category category);
     List<Product> findByCategoryInAndActiveTrue(List<Category> categories);
     
-    // Enhanced filtering and sorting methods
     List<Product> findWithFilters(ProductFilterCriteria criteria);
     List<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String name, String description);
     List<Product> findByCategoryId(Long categoryId);
@@ -22,7 +21,6 @@ public interface ProductRepository extends BaseRepository<Product, Long> {
     List<Product> findByStockQuantityBetween(Integer min, Integer max);
     List<Product> findByStockQuantity(Integer quantity);
     
-    // Statistics methods
     long countByStockQuantityGreaterThan(Integer quantity);
     long countByStockQuantityBetween(Integer min, Integer max);
     long countByStockQuantity(Integer quantity);

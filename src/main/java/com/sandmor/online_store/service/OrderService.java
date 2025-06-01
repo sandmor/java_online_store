@@ -22,10 +22,8 @@ public interface OrderService {
     List<Order> findAll();
     boolean simulatePayment(String creditCardNumber, String cvv, String expiryDate);
     
-    // Delete operations
     void deleteById(Long id);
     
-    // Enhanced filtering and sorting methods
     List<Order> findWithFilters(OrderFilterCriteria criteria);
     List<Order> findRecentOrders(int limit);
 }
